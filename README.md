@@ -38,12 +38,11 @@ Integration with different electronics components: most of them are reachable vi
 
 ![Raspberry Pi 40-pinout](images/Raspberry_Pi_pinout.jpg) 
 
-As it can be seen from Figure 4.4, the top pins on the left may provide 5 volt as external power supply. This aspect restricts the potential dosing actuators that could be connected. Taking this problem into account, an additional add-on board was used.
+As it can be seen from Figure above, the top pins on the left may provide 5 volt as external power supply. This aspect restricts the potential dosing actuators that could be connected. Taking this problem into account, an additional add-on board was used.
 
 ### Pololu Dual G2 High-Power Motor Driver
 
 This add-on board (see figure below) allows to control two high-power DC motors with a Raspberry Pi. The driver offers basic current limiting functionality and provides an interface with a python library to Raspberry Pi’s GPIO pins. 
-
 
 There are three several models providing different motors voltage: 18v18, 18v22 and 24v14 volts, all designed to be mount on and plug into Raspberry Pi with 40-pin GPIO headers.
 
@@ -60,7 +59,7 @@ Once you connect the Raspberry PI 3 and the Pololu Dual G2 High-Power Motor Driv
 ### Serial RGB Backlight Character LCD Backpack
 The System ACE has a character LCD display produced by Adafuit. It allows to display sixteen characters into two lines. The Raspberry Pi transmits data to the display via serial communication. This is possible thanks to the add on board soldered to the LCD display (see figure below)
 
-![LCD Adafuit Display and serial backpack](images/LCD_and_serial backpack.jpg)
+![LCD_and_serial backpack](images/LCD_and_serial backpack.jpg)
 
 To enhances the differences among the CGM values, System ACE uses the RGB backlight and Brightness regulation.
 
@@ -103,7 +102,6 @@ The IR sensors is a low power and cost device, that can provide a rough, yet use
 The low cost, fast response time (2ms or less) the easy connection to the pull-up resistor integrated inside the GPIO pins were the main reasons to select this component.
 Both the emitter and the receiver must be supplied with power. In System ACE, the display add-on board provides 3.3 volts to the emitter and 5 volts to the receiver.
 According to the producer description, a lower voltage produces a weak beam. A weak beam enables the detection of the glass some limitations.
-
 
 ## Built With [Software]
 
@@ -172,6 +170,54 @@ Additionally, this product functionality has to consider the fact that the peris
 An error that may occur is that the peristaltic pump cannot extract the juice from its container. 
 The reasons for this error can be that either the container can be empty, or the amount left on the container is lower than the amount required for the dose. This limitation of the peristaltic pump should be addressed by this product functionality. 
 As well this functionality must verify the glass presence during the distribution. Otherwise the juice distributed can be lost. Moreover, the dose must be stored only once user has picked up the glass. Or be blocked, in case which user has forgotten the previous dose. 
+
+## How to run the code
+
+### Installing operating system in the Raspberry PI 3
+The first step is to install the OS in the SD card for the Raspberry PI 3, follow the original instructions at this [link](https://www.raspberrypi.org/documentation/installation/installing-images/)
+
+### Installing the Pololu Dual G2 High-Power Motor Driver
+Now we can install the drivers, we have to install the drivers for the motor board, the following instraction are based on [this repository](https://github.com/pololu/dual-g2-high-power-motor-driver-rpi)
+
+Download and install pigpio and its Python 3 module, run:
+
+```
+sudo apt install python3-pigpio
+
+```
+Then, to start the pigpiod daemon that it will run every time your Raspberry Pi boots
+```
+sudo systemctl enable pigpiod
+```
+
+Finally, to download and install the dual_g2_hpmd_rpi library, run:
+```
+git clone https://github.com/pololu/dual-g2-high-power-motor-driver-rpi
+cd dual-g2-high-power-motor-driver-rpi
+sudo python3 setup.py install
+```
+Test it, navigate to the dual-g2-high-power-motor-driver-rpi directory and run:
+```
+python example.py
+```
+Now you can attach the Pololu Dual G2 High-Power Motor Driver to the Raspberry PI 3 and connect all the components to it.
+
+### Activating the UART protocol 
+
+Start raspi-config
+```
+sudo raspi-config.
+```
+And performs the following operations
+* Select option 5 - interfacing options.
+* Select option P6 - serial.
+* At the prompt Would you like a login shell to be accessible over serial? answer 'No'
+* At the prompt Would you like the serial port hardware to be enabled? answer 'Yes'
+* Exit raspi-config and reboot the Pi for changes to take effect
+```
+sudo shutdown -a now
+```
+
 
 
 ## Authors
