@@ -2,7 +2,7 @@
 
 Patients with diabetes are often worried about having low blood glucose because of the unpleasant feeling and possible dangerous situations this can lead to. This can make patients consume more carbohydrates than necessary. Ad-hoc carbohydrate estimation and dosing by the patients can be unreliable and may produce unwanted periods of high blood glucose. The House of Carbs, reffered to as System ACE in the code, is a system that automatically estimates and dispenses the amount of juice (or similar) according to the current patients' blood glucose values. The system is remotely accessible and customizable from a chatbot, exploits sensors and actuators to dispense the necessary amount of liquid carbohydrates. It relies on a cloud solution (Nightscout) to acquire the patient's blood glucose values, which are constantly updated thanks to a commercial wearable continuous glucose monitor (CGM).
 
-![House of Carbs](images/house of carbs.jpg) 
+![House of Carbs](images/House_of_carbs.jpg) 
 
 The House of Carbs was developed using Python 3. The whole system and the DBMS are inside a unique node Raspberry Pi 3 model B, a small computer, released in 2016.  
 This system is a multithreading solution, where the [main thread](Python3Sources/Machine/main.py) starts two separate threads: the former that controls the [Juice Machine](Python3Sources/Machine/thread_machine.py), the latter that manage the [Telegram bot](Machine/thread_bot.py). A telegram bot is a third-party application that run inside Telegram, all their functionalities are hard-coded in [a Python file](Python3Sources/Machine/thread_bot.py). 
@@ -36,7 +36,7 @@ DISCLAIMER: Some soldering skills are needed
 
 Integration with different electronics components: most of them are reachable via 40-pins (see figure below). These programmable pins can be accessible to manage hardware suchas sensors, motors, switches, buttons and many others.
 
-![Raspberry Pi 40-pinout](images/Raspberry Pi 40-pinout.jpg) 
+![Raspberry Pi 40-pinout](images/Raspberry_Pi_pinout.jpg) 
 
 As it can be seen from Figure 4.4, the top pins on the left may provide 5 volt as external power supply. This aspect restricts the potential dosing actuators that could be connected. Taking this problem into account, an additional add-on board was used.
 
@@ -47,20 +47,20 @@ This add-on board (see figure below) allows to control two high-power DC motors 
 
 There are three several models providing different motors voltage: 18v18, 18v22 and 24v14 volts, all designed to be mount on and plug into Raspberry Pi with 40-pin GPIO headers.
 
-![Pololu Dual G2](images/Pololu Dual G2.jpg)
+![Pololu Dual G2](images/Pololu_Dual_G2.jpg)
 
 The version selected for the first prototype is using the 18v18 version powered by an external power supply with 23 volts (see figure below)
 
-![GPIO pins interfacing](images/GPIO pins interfacing.jpg)
+![GPIO pins interfacing](images/GPIO_pins_interfacing.jpg)
 
 Once you connect the Raspberry PI 3 and the Pololu Dual G2 High-Power Motor Driver, it should look as following:
 
-![board connected](images/board connected.png)
+![board connected](images/Board_connected.png)
 
 ### Serial RGB Backlight Character LCD Backpack
 The System ACE has a character LCD display produced by Adafuit. It allows to display sixteen characters into two lines. The Raspberry Pi transmits data to the display via serial communication. This is possible thanks to the add on board soldered to the LCD display (see figure below)
 
-![LCD Adafuit Display and serial backpack](images/CD Adafuit Display and serial backpack.jpg)
+![LCD Adafuit Display and serial backpack](images/LCD_and_serial backpack.jpg)
 
 To enhances the differences among the CGM values, System ACE uses the RGB backlight and Brightness regulation.
 
@@ -98,7 +98,7 @@ The “on/off button” LED is connected to GPIO pin BCM 14, that provides 3.3 V
 ### IR Sensor
 The IR sensors is a low power and cost device, that can provide a rough, yet useful, information about the presence of the glass inside the system. Infrared (IR) break-beam sensor (see figure below)  is selected to perform the glass detection. 
 
-![IR breakout sensor](images/IR breakout sensor.jpg)
+![IR breakout sensor](images/IR_breakout_sensor.jpg)
 
 The low cost, fast response time (2ms or less) the easy connection to the pull-up resistor integrated inside the GPIO pins were the main reasons to select this component.
 Both the emitter and the receiver must be supplied with power. In System ACE, the display add-on board provides 3.3 volts to the emitter and 5 volts to the receiver.
