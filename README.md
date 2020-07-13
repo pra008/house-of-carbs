@@ -83,6 +83,7 @@ The main characteristics of the selected pump are: flow rate of approximately 10
 The “dose button” is a push button having an integrated LED with a supply voltage of 5V. Instead the “on/off button” is push button switches with a LED ring (3.3V and 6V).
 They are both designed for momentary-contact applications, but the pushbutton switch alternates between two states NO (normally open) and NC (normally closed)
 Instead the push button remains in a neutral state while it is not pressed vice versa it is active when pressed.
+We have used the following [On/Off button](https://www.adafruit.com/product/482), [dose button button](https://www.adafruit.com/product/3491)
 
 These two “buttons” are analysed together because they have a common feature for which they stand out among other alternatives. Both includes a LED with a built-in resistor, so no other resistors are necessary to draw the current (with low voltages). Thus, no other operation is required rather than connecting them to the board, hence avoid increasing the hardware complexity.
 
@@ -94,7 +95,7 @@ The “dose button” LED is connected to the second motor. And the motor is act
 
 The “on/off button” LED is connected to GPIO pin BCM 14, that provides 3.3 Volt. *Activating the UART protocol* (Universal Asynchronous Receiver/Transmitter) in the Raspberry PI. In according to the protocol, pins BCM 14 and 15 can transmit and receive data. Additionally, the pin BCM 14 starts to provide 3.3 volts until the Raspberry Pi is turned on.
 
-### IR Sensor
+### IR Breakbeam Sensors
 The IR sensors is a low power and cost device, that can provide a rough, yet useful, information about the presence of the glass inside the system. Infrared (IR) break-beam sensor (see figure below)  is selected to perform the glass detection. 
 
 ![IR breakout sensor](images/IR_breakout_sensor.jpg)
@@ -218,12 +219,36 @@ And performs the following operations
 sudo shutdown -a now
 ```
 
+### Create a BOT via telegram
+* install telegram in your personal devices https://telegram.org/
+* contact the BotFather https://telegram.me/BotFather
+* use the command /newbot
+* chose a name for your bot
 
+### Add the token of your Bot to the code
+* use the command /token in the BotFather
+* select the Bot that you have created
+* copy the token access HTTP API received (e.g., 56481254:ASDHrjhgjhg)
+* paste this token in line 13 of [this file](code/main.py) (e.g., TOKEN=56481254:ASDHrjhgjhg)
+
+### Run House carbs
+Now you can the start the code.
+```
+cd house-of-carbs
+sudo python3 code/main.py
+```
+If you want to start automatically the code
+``` 
+sudo crontab -e
+```
+Add the following line at the end of the file, the path where you saved the file may be different.
+```
+@reboot sudo /usr/bin/python3 home/pi/huse-of-carbs/code/main.py
+```
 
 ## Authors
 
 * **Pietro Randine** - *Designer and Developer*
-
 
 
 ## License
