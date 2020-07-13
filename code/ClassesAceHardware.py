@@ -246,14 +246,14 @@ class SensorIr:
         while not exit_flag.is_set():
             if GPIO.input(self.pin) == 1:  # the beam is NOT interrupted (NO OBJECT)
                 if event_object.is_set():
-                    #event_object.clear()
+                    event_object.clear()
                     logging.info('No object detected')
                 
             if GPIO.input(self.pin) == 0:  # the beam is interrupted
                 if not event_object.is_set():
                     event_object.set()
                     logging.info('The object is detected')
-            event_object.set()   
+              
             exit_flag.wait(0.1)
 
         # out of the loop

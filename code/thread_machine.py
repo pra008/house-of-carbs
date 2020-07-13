@@ -25,7 +25,7 @@ THRESHOLD = Threshold(SEC_RECENT, SEC_DOSE, SEC_FETCH, SEC_INVESTIGATION, SEC_ER
 """
 Display settings via usb
 """
-PORT_DISPLAY = '/dev/ttyACM0' # this needs to be changed by the users
+PORT_DISPLAY = '/dev/ttyACM0'
 SEC_ALT_MESS = 5  # seconds used for alternative message
 ALT_MESSAGE_MAX = 5  # times that the message will be display
 # total time of alternative messages = SEC_ALT_MESS * ALT_MESSAGE_MAX
@@ -55,7 +55,7 @@ flag_request_dose = threading.Event()  # definition request dose for on/off
 flag_stop_request = threading.Event()  # definition request dose for on/off
 
 
-def main_machine(patient_id, peristaltic_pump, flags):
+def main_machine(patient_id, peristaltic_pump, flags, DB_FILE):
     """
     :param patient_id: patient identifier to assign the machine to someone else
     :param peristaltic_pump: peristaltic_pump by the system
@@ -105,9 +105,8 @@ def main_machine(patient_id, peristaltic_pump, flags):
     display = Notifier(PORT_DISPLAY)
     # infinite loop wait for shutdown button
     while not flags.flag_exit.is_set():
-        db = Database()
+        db = Database(DB_FILE)
         patient = db.pull_patient(patient_id)
-        print(db.pull_last_cgm(patient_id))
         logging.info(patient)
         source_cgm = Nightscout(patient)
 
@@ -139,6 +138,7 @@ def main_machine(patient_id, peristaltic_pump, flags):
             errors = True
             request_led.turn_off()  # turn off the led for dose request
             flags.flag_dose_may_be_required.clear()
+            display.notify_error_connection("NO DATA!", True)  # display the head of the error
 
         else:  # no errors are detected
             errors = False  # reset any error from previous

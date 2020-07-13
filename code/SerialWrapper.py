@@ -80,3 +80,53 @@ class SerialWrapper:
         :return:
         """
         self.matrixwritecommand([0x47, 1, 2])
+
+
+if __name__ == '__main__':
+    d = SerialWrapper('COM11', 16, 2)
+    d.light_on()
+
+    # hypo
+    d.write_text("BG=3.5 mmol/L\n1 min ago DOSE")
+    d.set_light_intensity(255)
+    d.light_red()
+    time.sleep(10)
+    # in range
+    d.cls()
+    d.write_text("BG=6.5 mmol/L\n2 min ago")
+    d.set_light_intensity(253)
+    d.light_green()
+    time.sleep(10)
+    # hyper
+    d.cls()
+    d.write_text("BG=11.5 mmol/L\n6 min ago")
+    d.set_light_intensity(245)
+    d.light_rgb(0x4B,0x0,0x82)
+    #d.light_purple()
+    time.sleep(10)
+    # recent
+    d.cls()
+    d.write_text("BG=5.5 mmol/L\n1 min ago")
+    d.light_green()
+    d.set_light_intensity(255)
+    time.sleep(10)
+    # 16 minutes
+    d.cls()
+    d.write_text("BG=5.5 mmol/L\n16 min ago")
+    d.light_green()
+    d.set_light_intensity(95)
+    time.sleep(10)
+    # 16 minutes
+    d.cls()
+    d.write_text("BG=5.5 mmol/L\n1 hr ago")
+    d.light_green()
+    d.set_light_intensity(2)
+    time.sleep(10)
+
+    d.close()
+
+
+
+    
+
+

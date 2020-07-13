@@ -21,14 +21,15 @@ class Database(object):
     """
     Sqlite3 database class that holds prototypes record
     """
-    DB_LOCATION = "/home/pi/System_ACE/Python3Sources/Machine/database.sqlite"
-
     # basic function
-    def __init__(self):
+    def __init__(self,path):
         """
         Initialize db connection variable
         """
-        self.connection = sqlite3.connect(Database.DB_LOCATION)
+        try:
+            self.connection = sqlite3.connect(path)
+        except ValueError as e:
+            pass
 
     def __enter__(self):
         return self
@@ -449,6 +450,7 @@ class Database(object):
         :return:
         """
         cursor = self.connection.cursor()
+        cgm =None
         try:
             # check if there is data inside it
             cursor.execute("""SELECT count(*) FROM cgm_data WHERE patient_id = :patient_id""", {'patient_id': patient_id})
@@ -456,13 +458,16 @@ class Database(object):
             if int(counter_doses[0]) == 0:
                 return None
             else:
-                cursor.execute("""SELECT * FROM cgm_data WHERE patient_id = :patient_id ORDER BY timestamp DESC""",
+                cursor.execute("""SELECT * FROM cgm_data WHEREp patient_id = :patient_id ORDER BY timestamp DESC""",
                                {'patient_id': patient_id})
                 result = cursor.fetchone()
-                return ClassesAceLogic.CGM(result[0], result[1], result[2], result[3], result[4], result[5],
+                cgm = ClassesAceLogic.CGM(result[0], result[1], result[2], result[3], result[4], result[5],
                                            result[6], result[7], result[8], result[9])
+        except Exception:
+            cgm = None
         finally:
             cursor.close()
+            return cgm
 
     def pull_all_cgm(self, patient_id):
         """

@@ -5,7 +5,7 @@ Patients with diabetes are often worried about having low blood glucose because 
 ![House of Carbs](images/House_of_carbs.jpg) 
 
 The House of Carbs was developed using Python 3. The whole system and the DBMS are inside a unique node Raspberry Pi 3 model B, a small computer, released in 2016.  
-This system is a multithreading solution, where the [main thread](Python3Sources/Machine/main.py) starts two separate threads: the former that controls the [Juice Machine](Python3Sources/Machine/thread_machine.py), the latter that manage the [Telegram bot](Machine/thread_bot.py). A telegram bot is a third-party application that run inside Telegram, all their functionalities are hard-coded in [a Python file](Python3Sources/Machine/thread_bot.py). 
+This system is a multithreading solution, where the [main thread](code/main.py) starts two separate threads: the former that controls the [Juice Machine](code/thread_machine.py), the latter that manage the [Telegram bot](Machine/thread_bot.py). A telegram bot is a third-party application that run inside Telegram, all their functionalities are hard-coded in [a Python file](code/thread_bot.py). 
 These two threads communicate via Events and via a shared database. 
 Regarding the main thread of Juice Machine, it controls three separate threads. Each of these threads manage and read the status of a single component of the Juice Machine: “on/off button”, “dose button”, and IR sensor.
 

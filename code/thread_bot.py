@@ -23,6 +23,8 @@ logging.disable(logging.DEBUG)
 
 
 # block conversation handler for hypoglycemia and hyperglycemia
+
+
 ask_for_a_new_value = "please insert a new value\n/cancel to abort the operation"
 ask_value_not_correct = "value not correct\ninsert a new one or /cancel to undo the operation"
 notify_mistake = "Not possible!\nmodification undone"
@@ -65,49 +67,50 @@ def broadcast_message(bot, message):
 
 
 
-def request_patient(patient_id):
+
+def request_patient(patient_id, DB_FILE):
     """
     this request the patient based on the id
     :param patient_id:
     :return:
     """
-    db = Database()
+    db = Database(DB_FILE)
     patient = db.pull_patient(patient_id)
     db.close()
     return patient
 
 
-def request_juice(patient_id):
+def request_juice(patient_id,request_juice,DB_FILE):
     """
     this request the patient based on the id
     :param patient_id:
     :return:
     """
-    db = Database()
+    db = Database(DB_FILE)
     juice = db.pull_last_juice(patient_id)
     db.close()
     return juice
 
 
-def update_juice(new_juice):
+def update_juice(new_juice, DB_FILE):
     """
     This function update the juice
     :param new_juice: ClassesLogicAce Juice
     :return:
     """
-    db = Database()
+    db = Database(DB_FILE)
     db.update_juice(new_juice)
     db.close()
 
 
-def update_patient_unit(new_unit, patient_id):
+def update_patient_unit(new_unit, patient_id, DB_FILE):
     """
     This function is a call to the database to update the system unit
     :param new_unit:
     :param patient_id:
     :return:
     """
-    db = Database()
+    db = Database(DB_FILE)
     db.update_patient_unit(new_unit, patient_id)
     db.close()
 
@@ -169,8 +172,8 @@ def eval_to_investigate_value(bot, update, number, low_limit, upper_limit):
         return True
 
 
-def insert_bot_dose(bot, update, grams, patient_id, flags):
-    db = Database()
+def insert_bot_dose(bot, update, grams, patient_id, flags, DB_FILE):
+    db = Database(DB_FILE)
     try:
         last_juice = db.pull_last_juice(patient_id)
         if last_juice is None:
@@ -228,13 +231,14 @@ def glucose_value_to_str(glucose_value, unit):
 
 
 class Bot:
-    def __init__(self, token, patient_id, pump, flags):
+    def __init__(self, token, patient_id, pump, flags, DB_FILE):
         
         self.patient_id = patient_id
         self.pump = pump
         self.flags = flags
         self.updater = Updater(token=token)
         self.dispatcher = self.updater.dispatcher
+        self.DB_FILE = DB_FILE
 
         # handler errors
         self.dispatcher.add_error_handler(self.error_callback)
@@ -422,6 +426,7 @@ class Bot:
         """
         Main thread
         :param flag_exit:
+        :param DB_FILE path of the database
         :return:
         """
         logging.info("BOT STARTS")
@@ -451,7 +456,7 @@ class Bot:
 
         # the next dose could not be enough juice
         if job.flags.flag_low_juice.is_set():
-            db = Database()
+            db = Database(self.DB_FILE)
             juice = db.pull_last_juice(self.patient_id)
             db.close()
             text_to_show = "Please fill up the juice container!\nonly " + str(juice.amount) + " ml left"
@@ -459,7 +464,7 @@ class Bot:
             job.flags.flag_low_juice.clear()
 
         if job.flags.flag_no_juice_left.is_set():
-            db = Database()
+            db = Database(self.DB_FILE)
             juice = db.pull_last_juice(self.patient_id)
             db.close()
             text_to_show = "Dose fails due to not enough juice!\nonly " + str(juice.amount) + " ml left"
@@ -496,7 +501,7 @@ class Bot:
             job.notify_distribution_done = False
 
         if job.flags.flag_dose_may_be_required.is_set() and not job.notify_distribution_dose_may_be_required:
-            db = Database()
+            db = Database(self.DB_FILE)
             cgm = db.pull_last_cgm(self.patient_id)
             if cgm is not None:
                 min_text = translate_timestamp_to_str(cgm.datetime_sgv)
@@ -540,7 +545,7 @@ class Bot:
         """
         chat_data['user'] = update.message.from_user.first_name
         logging.info("User %s is trying to change hyper_hypo threshold", chat_data['user'])
-        chat_data['patient'] = request_patient(self.patient_id)
+        chat_data['patient'] = request_patient(self.patient_id, self.DB_FILE)
         patient = chat_data['patient']
 
         chat_data['opt1'] = 'hypoglycemia\n\ncurrent value=' + glucose_value_to_str(patient.hypo_threshold,
@@ -604,7 +609,7 @@ class Bot:
             upper_limit = patient.to_investigate_threshold
 
         if eval_value_hypo(bot, update, number_received, upper_limit, patient.unit_bg):
-            db = Database()
+            db = Database(self.DB_FILE)
             db.update_patient_hypo_threshold(number_received, patient.id)
             db.close()
             text = "hypoglycemia threshold modified\nnew value=" + str(number_received) + " " + patient.unit_bg
@@ -644,7 +649,7 @@ class Bot:
         if eval_value_hyper(bot, update, number_received, lower_limit, patient.unit_bg):
             del chat_data['choice']
 
-            db = Database()
+            db = Database(self.DB_FILE)
             db.update_patient_hyper_threshold(number_received, patient.id)
             db.close()
             text = "hyperglycemia threshold modified\nnew value=" + str(number_received) + " " + patient.unit_bg
@@ -662,7 +667,7 @@ class Bot:
         chat_data['user'] = update.message.from_user.first_name
         logging.info("User %s is trying to change the to investigate threshold", chat_data['user'])
 
-        patient = request_patient(self.patient_id)
+        patient = request_patient(self.patient_id,self.DB_FILE)
         chat_data['patient'] = patient
 
         # handler the to investigate value handler
@@ -689,7 +694,7 @@ class Bot:
         patient = chat_data['patient']
 
         if chat_data['opt2'] in chat_data['which']:
-            db = Database()
+            db = Database(self.DB_FILE)
             db.update_patient_to_investigate_threshold(None, patient.id)
             db.close()
             bot.send_message(chat_id=update.message.chat_id, text="Value Update")
@@ -719,7 +724,7 @@ class Bot:
             return self.MOD_TO_INVESTIGATE_DONE
 
         if eval_to_investigate_value(bot, update, number_received, patient.hypo_threshold, patient.hyper_threshold):
-            db = Database()
+            db = Database(self.DB_FILE)
             db.update_patient_to_investigate_threshold(number_received, patient.id)
             db.close()
             bot.send_message(chat_id=update.message.chat_id, text='to investigate value updated')
@@ -745,7 +750,10 @@ class Bot:
             # phase 1 verify if the user is inside the file
             with open("bot_users.txt", "r") as file:
                 lines = list(file)
-                if not str(update.message.chat_id) in lines:
+                print(lines)
+                print(update.message.chat_id)
+
+                if not (str(update.message.chat_id)+ "\n") in lines:
                     to_add = True
         except FileNotFoundError:
             to_add = True
@@ -755,7 +763,7 @@ class Bot:
                     file.write(str(update.message.chat_id) + "\n")
 
         # manager patient
-        db = Database()
+        db = Database(self.DB_FILE)
         patient = db.pull_patient(self.patient_id)
 
         if self.patient_id == 0:  # the machine was turned on for the first time
@@ -807,7 +815,7 @@ class Bot:
         else:
             patient.diabetes_type = "OTHER"
 
-        db = Database()
+        db = Database(self.DB_FILE)
         self.patient_id = 1
         db.push_patient(patient)
         db.close()
@@ -818,7 +826,7 @@ class Bot:
         return ConversationHandler.END
 
     def change_info_init(self, bot, update, chat_data):
-        db = Database()
+        db = Database(self.DB_FILE)
         patient = db.pull_patient(int(self.patient_id))
         chat_data['patient'] = patient
         text = "Hi! " + str(patient.name) + "\n"
@@ -877,7 +885,7 @@ class Bot:
         else:
             patient.name = value_to_insert
 
-        db = Database()
+        db = Database(self.DB_FILE)
         db.push_patient(patient)
         db.close()
         bot.send_message(chat_id=update.message.chat_id, text="Modification done!")
@@ -936,7 +944,7 @@ class Bot:
             # handle all other telegram related errors
 
     def get_last_cgm_data(self, bot, update):
-        db = Database()
+        db = Database(self.DB_FILE)
         cgm = db.pull_last_cgm(self.patient_id)
         if cgm is not None:
             min_text = translate_timestamp_to_str(cgm.datetime_sgv)
@@ -947,7 +955,7 @@ class Bot:
         db.close()
 
     def check_dose(self, bot, update):
-        db = Database()
+        db = Database(self.DB_FILE)
         try:
             dose = db.pull_last_dose(self.patient_id)
 
@@ -1007,13 +1015,13 @@ class Bot:
                 chat_data['grams'] = 15
             logging.info("User %s requests %s grams", chat_data['user'], str(chat_data['grams']))
             # insert a dose inside the system
-            db = Database()
+            db = Database(self.DB_FILE)
             juice = db.pull_last_juice(self.patient_id)
             amount = math.floor(float(chat_data['grams'] * 10 / juice.carbohydrates))
             if amount < juice.amount:
                 logging.info("User %s requests %s grams", chat_data['user'], str(chat_data['grams']))
                 # insert a dose inside the system
-                insert_bot_dose(bot, update, chat_data['grams'], self.patient_id, self.flags)
+                insert_bot_dose(bot, update, chat_data['grams'], self.patient_id, self.flags, self.DB_FILE)
                 self.flags.flag_bot_request_dose.set()
             else:
                 text = str(chat_data['grams']) + " g\nCannot be delivered, the juice is not enough"
@@ -1045,13 +1053,13 @@ class Bot:
                              text="Invalid number, please retry\n/cancel to undo the operation")
             return self.ASK_DOSE_GRAMS
         else:
-            db = Database()
+            db = Database(self.DB_FILE)
             juice = db.pull_last_juice(self.patient_id)
             amount = math.floor(float(number_received * 10 / juice.carbohydrates))
             if amount < juice.amount:
                 logging.info("User %s requests %s grams", chat_data['user'], str(number_received))
                 # insert a dose inside the system
-                insert_bot_dose(bot, update, number_received, self.patient_id, self.flags)
+                insert_bot_dose(bot, update, number_received, self.patient_id, self.flags, self.DB_FILE)
                 self.flags.flag_bot_request_dose.set()
             else:
                 text = str(chat_data['value']) + " g\nCannot be delivered, the juice is not enough"
@@ -1068,7 +1076,7 @@ class Bot:
         :param chat_data:
         :return:
         """
-        chat_data['patient'] = request_patient(self.patient_id)
+        chat_data['patient'] = request_patient(self.patient_id, self.DB_FILE)
         patient = chat_data['patient']
 
         reply = "Thresholds currently in use\nhypoglycemia:" + str(patient.hypo_threshold) + " " + str(patient.unit_bg)
@@ -1082,7 +1090,7 @@ class Bot:
         logging.info("User %s is trying to change the source of data of the system.", chat_data['user'])
 
         # request the patient information (based on the database structure)
-        chat_data['patient'] = request_patient(self.patient_id)
+        chat_data['patient'] = request_patient(self.patient_id, self.DB_FILE)
         patient = chat_data['patient']
 
         if patient.nightscout is None:  # no address was insert  # todo: is it really necessary?
@@ -1111,11 +1119,11 @@ class Bot:
 
             reply = reply + text_found_unit
             # update the patient address
-            db = Database()
+            db = Database(self.DB_FILE)
             db.update_patient_nightscout(chat_data['new_address'], patient.id)
             # update if necessary the system unit
             if not found_unit == patient.unit_bg:
-                update_patient_unit(found_unit, patient.id)
+                update_patient_unit(found_unit, patient.id, self.DB_FILE)
             db.close()
             reply = reply + "\nuse /change_bg_unit to modify it"
             bot.send_message(chat_id=update.message.chat_id, text=reply)
@@ -1135,7 +1143,7 @@ class Bot:
         logging.info("User %s is trying to change the system unit.", chat_data['user'])
 
         # request the patient information (based on the database structure)
-        chat_data['patient'] = request_patient(self.patient_id)
+        chat_data['patient'] = request_patient(self.patient_id, self.DB_FILE)
         patient = chat_data['patient']
 
         # make the option variable on current unit
@@ -1175,7 +1183,7 @@ class Bot:
 
             # case 1.2 the user has selected a different unit
             else:
-                update_patient_unit(new_unit, patient.id)
+                update_patient_unit(new_unit, patient.id, self.DB_FILE)
                 text_to_display = 'system unit changed into: ' + text
                 bot.send_message(chat_id=update.message.chat_id, text=text_to_display)
                 logging.info("User %s has changed the unit to %s", chat_data['user'], text)
@@ -1191,7 +1199,7 @@ class Bot:
     # TODO: This part sucks
     def insert_juice_init(self, bot, update, chat_data):
         # request the patient information (based on the database structure)
-        chat_data['patient'] = request_patient(self.patient_id)
+        chat_data['patient'] = request_patient(self.patient_id, self.DB_FILE)
         chat_data['user'] = update.message.from_user.first_name
         logging.info("User %s is trying to add a new juice", chat_data['user'])
         text = "Insert the carbohydrates inside the juice\n(unit to use: grams on 100 ml)"
@@ -1241,7 +1249,7 @@ class Bot:
         chat_data['option'] = update.message.text
 
         if chat_data['option'] in chat_data['opt1']:
-            db = Database()
+            db = Database(self.DB_FILE)
             juice = JuiceData(None,
                               int(datetime.now(tz=None).replace(microsecond=0).timestamp()),
                               chat_data['grams'],
@@ -1258,7 +1266,7 @@ class Bot:
             return ConversationHandler.END
 
     def change_juice_left_init(self, bot, update, chat_data):
-        db = Database()
+        db = Database(self.DB_FILE)
         juice = db.pull_last_juice(self.patient_id)
         chat_data['last_juice'] = juice
 
@@ -1306,8 +1314,8 @@ class Bot:
         else:
             juice = chat_data['last_juice']
             juice.amount = value
-            db = Database()
-            db.update_juice(juice)
+            db = Database(self.DB_FILE)
+            db.update_juice(juice, self.DB_FILE)
             db.close()
             bot.send_message(chat_id=update.message.chat_id, text="Modification performed")
             chat_data.clear()
