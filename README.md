@@ -5,9 +5,9 @@ Patients with diabetes are often worried about having low blood glucose because 
 ![House of Carbs](images/House_of_carbs.jpg) 
 
 The House of Carbs was developed using Python 3. The whole system and the DBMS are inside a unique node Raspberry Pi 3 model B, a small computer, released in 2016.  
-This system is a multithreading solution, where the [main thread](code/main.py) starts two separate threads: the former that controls the [Juice Machine](code/thread_machine.py), the latter that manage the [Telegram bot](Machine/thread_bot.py). A telegram bot is a third-party application that run inside Telegram, all their functionalities are hard-coded in [a Python file](code/thread_bot.py). 
+This system is a multithreading solution, where the [main thread](code/main.py) starts two separate threads: the former that controls the [Juice Machine](code/thread_machine.py), the latter that manage the Telegram Bot. A telegram bot is a third-party application that run inside Telegram, all their functionalities are hard-coded in [a Python file](code/thread_bot.py). 
 These two threads communicate via Events and via a shared database. 
-Regarding the main thread of Juice Machine, it controls three separate threads. Each of these threads manage and read the status of a single component of the Juice Machine: “on/off button”, “dose button”, and IR sensor.
+Regarding the main thread of Juice Machine, it controls three separate threads. Each of these threads manage and read the status of a single component of the Juice Machine: “on/off button”, “dose button”, and IR sensor. We are going to see later on, which hardware and components are used in the House of Carbs.
 
 The Telegram bot is composed by two thread also: the former is synchronous and communicates with the user, the latter is asynchronous and sends notifications to user regarding the Juice Machine status (e.g., dose ready to be picked up, glass removed). 
 The synchronous thread is responsible to continuously attempting to check if there are messages sent by the Telegram server (polling mode). In order to make possible the communication between users and the Telegram bot. 
@@ -25,12 +25,14 @@ The machine is a combination of Hardware and Software
 ## Built With [Hardware]
 DISCLAIMER: Some soldering skills are needed
 
-* *[Raspberry PI 3]*
+* *[Raspberry PI 3]* + SD card 8 GB
 * *[Pololu Dual G2 High-Power Motor Driver]*
 * *[Serial RGB Backlight Character LCD Backpack]*
 * *[Peristaltic Pump and Silicon Tubes]*
 * *[Dose Button and on/off Button]*
 * *[IR Sensor]* 
+
+We have used the following components, click on the links for more details: [Raspberry PI 3](https://www.komplett.no/product/875746/datautstyr/pc-komponenter/hovedkort/integrert-cpu/raspberry-pi-3-model-b#), [Pololu Dual G2 High-Power Motor Driver](https://www.pololu.com/product/3750), [Serial RGB Backlight Character LCD Backpack](https://www.adafruit.com/product/782), [Peristaltic Pump and Silicon Tubes](https://www.adafruit.com/product/1150), [On/Off button](https://www.adafruit.com/product/482), [Dose button](https://www.adafruit.com/product/3491), [IR Sensor](https://www.adafruit.com/product/2168)
 
 ### Raspberry PI 3
 
@@ -48,13 +50,6 @@ There are three several models providing different motors voltage: 18v18, 18v22 
 
 ![Pololu Dual G2](images/Pololu_Dual_G2.jpg)
 
-The version selected for the first prototype is using the 18v18 version powered by an external power supply with 23 volts (see figure below)
-
-![GPIO pins interfacing](images/GPIO_pins_interfacing.jpg)
-
-Once you connect the Raspberry PI 3 and the Pololu Dual G2 High-Power Motor Driver, it should look as following:
-
-![board connected](images/Board_connected.png)
 
 ### Serial RGB Backlight Character LCD Backpack
 The System ACE has a character LCD display produced by Adafuit. It allows to display sixteen characters into two lines. The Raspberry Pi transmits data to the display via serial communication. This is possible thanks to the add on board soldered to the LCD display (see figure below)
@@ -83,7 +78,6 @@ The main characteristics of the selected pump are: flow rate of approximately 10
 The “dose button” is a push button having an integrated LED with a supply voltage of 5V. Instead the “on/off button” is push button switches with a LED ring (3.3V and 6V).
 They are both designed for momentary-contact applications, but the pushbutton switch alternates between two states NO (normally open) and NC (normally closed)
 Instead the push button remains in a neutral state while it is not pressed vice versa it is active when pressed.
-We have used the following [On/Off button](https://www.adafruit.com/product/482), [dose button button](https://www.adafruit.com/product/3491)
 
 These two “buttons” are analysed together because they have a common feature for which they stand out among other alternatives. Both includes a LED with a built-in resistor, so no other resistors are necessary to draw the current (with low voltages). Thus, no other operation is required rather than connecting them to the board, hence avoid increasing the hardware complexity.
 
@@ -109,6 +103,135 @@ According to the producer description, a lower voltage produces a weak beam. A w
 * [Nightscout](http://www.nightscout.info/) - Source of the CGM data
 * [Raspberry Pi OS](https://maven.apache.org/) - Operating System
 * [Python3](https://www.raspberrypi.org/documentation/linux/software/python.md) - Programming Language used
+
+## How to run the code and mount the hardware
+
+### Installing operating system in the Raspberry PI 3
+The first step is to install the OS in the SD card for the Raspberry PI 3, follow the original instructions at this [link](https://www.raspberrypi.org/documentation/installation/installing-images/). The power supply requirements for this state require a microUSB power connector.
+
+### Installing the Pololu Dual G2 High-Power Motor Driver
+Now we can install the drivers, we have to install the drivers for the motor board, the following instraction are based on [this repository](https://github.com/pololu/dual-g2-high-power-motor-driver-rpi)
+
+Download and install pigpio and its Python 3 module, run:
+
+```
+sudo apt install python3-pigpio
+
+```
+Then, to start the pigpiod daemon that it will run every time your Raspberry Pi boots
+```
+sudo systemctl enable pigpiod
+```
+
+Finally, to download and install the dual_g2_hpmd_rpi library, run:
+```
+git clone https://github.com/pololu/dual-g2-high-power-motor-driver-rpi
+cd dual-g2-high-power-motor-driver-rpi
+sudo python3 setup.py install
+```
+Test it, navigate to the dual-g2-high-power-motor-driver-rpi directory and run:
+```
+python example.py
+```
+
+### Activating the UART protocol 
+
+Start raspi-config
+```
+sudo raspi-config.
+```
+And performs the following operations
+* Select option 5 - interfacing options.
+* Select option P6 - serial.
+* At the prompt Would you like a login shell to be accessible over serial? answer 'No'
+* At the prompt Would you like the serial port hardware to be enabled? answer 'Yes'
+* Exit raspi-config and reboot the Pi for changes to take effect
+```
+sudo shutdown -a now
+```
+### Assembly the Hardware.
+
+Now you can attach the Pololu Dual G2 High-Power Motor Driver to the Raspberry PI 3 and connect all the components to it.
+The version selected for the first prototype is using the 18v18 version powered by an external power supply with 23 volts (see figure below)
+
+Once you connect the Raspberry PI 3 and the Pololu Dual G2 High-Power Motor Driver, it should look as following:
+
+![board connected](images/Board_connected.png)
+
+Now, you can connected the various components. For each motor, the positive is on the left, meawhile the negative is on the right.
+Remember that you have to provide 23 volts to the main motor (#1 power supply motor) otherwise the machine will not work.
+
+Now we can connect the rest of the components, the following list and the image below will help you in this procedure.
+
+* BCM9, BCM10 for the Power button,
+* BCM19, BCM20 for the Request button,
+* BCM26 for the IR sensor.
+* BCM14 for the positive Pin of the Power Button Led and GND for the negative of the Power Button Led.
+* VRG (5V) and GND for the power supply of the IR sensor.
+* USB for the LCD display.
+
+![GPIO pins interfacing](images/GPIO_pins_interfacing.jpg)
+
+You can check when the power is on the correctness of the power for each components via a Multimeter, this will also help you in checking that all the components have been soldered correctly.
+
+This is the most complicated phase. Please create an issue in this repository in case of any problems.
+
+### Turn on the Raspeberry Pi from the external board.
+
+* You can now provide 23 volts to the the board and turn on the Raspeberry Pi.
+* git clone the this repository
+
+```
+git clone https://github.com/pra008/house-of-carbs.git
+```
+
+### Create a BOT via telegram
+* install telegram in your personal devices https://telegram.org/
+* contact the BotFather https://telegram.me/BotFather
+* use the command /newbot
+* chose a name for your bot
+
+### Add the token of your Bot to the code
+* use the command /token in the BotFather
+* select the Bot that you have created
+* copy the token access HTTP API received (e.g., 56481254:ASDHrjhgjhg)
+* paste this token in line 13 of [this file](code/main.py) (e.g., TOKEN=56481254:ASDHrjhgjhg)
+
+
+### Run House carbs
+Now you can the start the code.
+```
+cd house-of-carbs
+sudo python3 code/main.py
+```
+If you want to start automatically the code
+``` 
+sudo crontab -e
+```
+Add the following line at the end of the file, the path where you saved the file may be different.
+```
+@reboot sudo /usr/bin/python3 home/pi/huse-of-carbs/code/main.py
+```
+
+### Setup the house of Carbs
+Contact the Bot that you have created.
+
+Start the bot via the start command in the chat. You need to be familiar with the Bot in Telegram. Shortly, each command start with /
+```
+/start
+```
+You have to select your Nightscout webpage by using the command /change_nightscout
+```
+/change_nightscout
+```
+You have to insert a juice inside the system by using the command /add_juice
+```
+/add_juice
+```
+You can perform a multitude of operation via the telegram bot, for recap them, you have to simply use the command /help
+```
+/help
+```
 
 ## How the machine works
 
@@ -171,80 +294,6 @@ Additionally, this product functionality has to consider the fact that the peris
 An error that may occur is that the peristaltic pump cannot extract the juice from its container. 
 The reasons for this error can be that either the container can be empty, or the amount left on the container is lower than the amount required for the dose. This limitation of the peristaltic pump should be addressed by this product functionality. 
 As well this functionality must verify the glass presence during the distribution. Otherwise the juice distributed can be lost. Moreover, the dose must be stored only once user has picked up the glass. Or be blocked, in case which user has forgotten the previous dose. 
-
-## How to run the code
-
-### Installing operating system in the Raspberry PI 3
-The first step is to install the OS in the SD card for the Raspberry PI 3, follow the original instructions at this [link](https://www.raspberrypi.org/documentation/installation/installing-images/)
-
-### Installing the Pololu Dual G2 High-Power Motor Driver
-Now we can install the drivers, we have to install the drivers for the motor board, the following instraction are based on [this repository](https://github.com/pololu/dual-g2-high-power-motor-driver-rpi)
-
-Download and install pigpio and its Python 3 module, run:
-
-```
-sudo apt install python3-pigpio
-
-```
-Then, to start the pigpiod daemon that it will run every time your Raspberry Pi boots
-```
-sudo systemctl enable pigpiod
-```
-
-Finally, to download and install the dual_g2_hpmd_rpi library, run:
-```
-git clone https://github.com/pololu/dual-g2-high-power-motor-driver-rpi
-cd dual-g2-high-power-motor-driver-rpi
-sudo python3 setup.py install
-```
-Test it, navigate to the dual-g2-high-power-motor-driver-rpi directory and run:
-```
-python example.py
-```
-Now you can attach the Pololu Dual G2 High-Power Motor Driver to the Raspberry PI 3 and connect all the components to it.
-
-### Activating the UART protocol 
-
-Start raspi-config
-```
-sudo raspi-config.
-```
-And performs the following operations
-* Select option 5 - interfacing options.
-* Select option P6 - serial.
-* At the prompt Would you like a login shell to be accessible over serial? answer 'No'
-* At the prompt Would you like the serial port hardware to be enabled? answer 'Yes'
-* Exit raspi-config and reboot the Pi for changes to take effect
-```
-sudo shutdown -a now
-```
-
-### Create a BOT via telegram
-* install telegram in your personal devices https://telegram.org/
-* contact the BotFather https://telegram.me/BotFather
-* use the command /newbot
-* chose a name for your bot
-
-### Add the token of your Bot to the code
-* use the command /token in the BotFather
-* select the Bot that you have created
-* copy the token access HTTP API received (e.g., 56481254:ASDHrjhgjhg)
-* paste this token in line 13 of [this file](code/main.py) (e.g., TOKEN=56481254:ASDHrjhgjhg)
-
-### Run House carbs
-Now you can the start the code.
-```
-cd house-of-carbs
-sudo python3 code/main.py
-```
-If you want to start automatically the code
-``` 
-sudo crontab -e
-```
-Add the following line at the end of the file, the path where you saved the file may be different.
-```
-@reboot sudo /usr/bin/python3 home/pi/huse-of-carbs/code/main.py
-```
 
 ## Authors
 
