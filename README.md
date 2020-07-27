@@ -1,5 +1,16 @@
 # House of Carbs
 
+## Disclaimer: This is a prototype not a medical device (informational and educational purposes only)
+The unique prototype developed was tested only by us, its unicity has limited the people involved in testing phases. Moreover, the system integrates the open source diabetes monitoring tool that has **informational and educational purposes only**. With a view to maximize the benefits of this system, the sensors connected to this open source monitoring tool must should be calibrated and substituted according to the device producer’s instructions.
+**Among the assumptions of the project we must clarify that diabetes is a very complicated illness to manage, and to point out that**:
+* The system developed aims to help people with diabetes in managing better their disease. Nevertheless, **the patient (or caregiver) is responsible for their own decisions about how to use the system and how to manage their diabetes**.
+* **Patient must to be responsible and must follow a healthy behaviour**. An inappropriate, treatment of diabetes can have negative consequences on patient’s health.
+Regarding the user protection, **we assume that the patient (or caregiver) will not use dangerous drinks or not appropriate ones**. **The glass/cup provided must have a capacity of at least of 300 millilitres with frequently changing (or cleaning) due to hygiene reason**.
+
+Additional factors that may affect the system are the data storage. **If the user saves incorrect or altered information, the main system function can be compromised**. Furthermore, **the chatbot component included in the system can be potentially accessible by anyone and there are not been implemented security countermeasures to avoid its abuse or misuse**.
+Regarding the user privacy, the system will store information about health and habits; information that patients might want to keep private. **The database with data entries will be stored internally without any data encryption**.
+
+## Why do we need an House of Carbs?
 Patients with diabetes are often worried about having low blood glucose because of the unpleasant feeling and possible dangerous situations this can lead to. This can make patients consume more carbohydrates than necessary. Ad-hoc carbohydrate estimation and dosing by the patients can be unreliable and may produce unwanted periods of high blood glucose. The House of Carbs, reffered to as System ACE in the code, is a system that automatically estimates and dispenses the amount of juice (or similar) according to the current patients' blood glucose values. The system is remotely accessible and customizable from a chatbot, exploits sensors and actuators to dispense the necessary amount of liquid carbohydrates. It relies on a cloud solution (Nightscout) to acquire the patient's blood glucose values, which are constantly updated thanks to a commercial wearable continuous glucose monitor (CGM).
 
 ![House of Carbs](images/House_of_carbs.jpg) 
