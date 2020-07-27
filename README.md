@@ -1,7 +1,7 @@
 # House of Carbs
 
 ## Disclaimer: This is a prototype not a medical device (informational and educational purposes only)
-The unique prototype developed was tested only by us, its unicity has limited the people involved in testing phases. Moreover, the system integrates the open source diabetes monitoring tool that has **informational and educational purposes only**. With a view to maximize the benefits of this system, the sensors connected to this open source monitoring tool must should be calibrated and substituted according to the device producer’s instructions.
+The unique prototype developed was tested only by us, its unicity has limited the people involved in testing phases. Moreover, the system integrates the open source diabetes monitoring tool that has **informational and educational purposes only**. With a view to maximize the benefits of of a system like this, the sensors connected to this open source monitoring tool must should be calibrated and substituted according to the device producer’s instructions.
 **Among the assumptions of the project we must clarify that diabetes is a very complicated illness to manage, and to point out that**:
 * The system developed aims to help people with diabetes in managing better their disease. Nevertheless, **the patient (or caregiver) is responsible for their own decisions about how to use the system and how to manage their diabetes**.
 * **Patient must to be responsible and must follow a healthy behaviour**. An inappropriate, treatment of diabetes can have negative consequences on patient’s health.
