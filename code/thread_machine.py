@@ -143,9 +143,6 @@ def main_machine(patient_id, peristaltic_pump, flags, DB_FILE):
         else:  # no errors are detected
             errors = False  # reset any error from previous
             counter_error = 0  # reset error counter
-            print(cgm)
-            # how to cite
-            cgm.sgv = 3.9
             db.push_unique_cgm(cgm)  # store the glucose value
             anomaly = source_cgm.eval_cgm(cgm)  # eval data value based on the threshold
             recent = source_cgm.is_recent(cgm, THRESHOLD.sec_recent)  # eval data recent or not
